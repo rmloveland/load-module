@@ -124,6 +124,10 @@ utils.scm
 utils.mod
 ```
 
+The implementation's method for "hiding" internal definitions is
+really ugly.  It would probably be better done using some syntax that
+generates closures to hide everything in.  That may be a next step.
+
 At the end of the day, *load-module* is a "toy" module system, but you may
 find it useful if:
 
