@@ -4,6 +4,22 @@
 
 (define (load-module module)
 
+  ;; utils
+
+  (define (take xs i)
+    ;; List Integer -> List
+    (let loop ((xs xs) (ys '()) (i i))
+      (cond ((null? xs) (reverse ys))
+            ((zero? i) (reverse ys))
+            (else (loop (cdr xs) (cons (car xs) ys) (- i 1))))))
+
+  (define (assoc* a as)
+    ;; Symbol List -> List
+    (let ((val (assoc a as)))
+      (if val (cdr val) #f)))
+
+  ;; gensyms
+
   (define *random-seed* 2718281828)
   (define *random-constant* 31415821)
 
@@ -27,15 +43,7 @@
            (gensym* (string->symbol gensym)))
       gensym*))
 
-  ;; module files have simple syntax:
-
-  ;; (define-module utils
-  ;;   (exports random-integer random-char make-list* atom?))
-
-  ;; assuming the above lives in `utils.mod`, we parse it like so:
-
-  ;; (parse-module-file "utils.mod")
-  ;; => (utils (random-integer random-char make-list* atom?))
+  ;; parsing module definitions
 
   (define (parse-module-definition tree)
     ;; List -> List
@@ -50,11 +58,6 @@
       (lambda ()
         (let ((code (read)))
           (parse-module-definition code)))))
-  
-  (define (assoc* a as)
-    ;; Symbol List -> List
-    (let ((val (assoc a as)))
-      (if val (cdr val) #f)))
 
   (define (get-module-name module)
     ;; List -> List
@@ -71,6 +74,8 @@
             ((list? val) (car val))
             (else #f))))
 
+  ;; converting between module names and filenames
+
   (define (module->source-file mod)
     ;; Symbol -> Pathname
     (string-append (symbol->string mod) ".scm"))
@@ -79,13 +84,6 @@
     ;; Symbol -> Pathname
     (string-append (symbol->string mod) ".mod"))
 
-  (define (take xs i)
-    ;; List Integer -> List
-    (let loop ((xs xs) (ys '()) (i i))
-      (cond ((null? xs) (reverse ys))
-            ((zero? i) (reverse ys))
-            (else (loop (cdr xs) (cons (car xs) ys) (- i 1))))))
-  
   (define (file->module filename)
     ;; String -> Symbol
     (define (find-char ch string)
@@ -101,6 +99,8 @@
            (xs (take (string->list filename) (- i 1)))
            (mod (string->symbol (list->string xs))))
       mod))
+
+  ;; code walking
 
   (define (gather-defined-symbols module)
     ;; Symbol -> Alist
@@ -149,7 +149,8 @@
             (loop (cdr internal-symbols)
                   (cons (cons name (gensym module name)) annotated))))))  
 
-  ;; Procedure main body
+  ;; main loop
+
   (let* ((module-file (module->module-file module))
          (source-file (module->source-file module))
          (module-definition (parse-module-file module-file))
@@ -170,13 +171,4 @@
                   (eval code*)
                   (loop (read))))))))))
 
-;; notes on eval
-
-;; larceny, chez, gambit
-;; (eval '(+ 1 2)
-
-;; scheme48
-;; (eval '(+ 1 2) (interaction-environment))
-
-;; mit
-;; (eval '(+ 1 2) (the-environment))
+;; eof
