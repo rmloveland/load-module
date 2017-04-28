@@ -43,6 +43,14 @@
            (gensym* (string->symbol gensym)))
       gensym*))
 
+  (define (namespace module sym)
+    ;; Symbol Symbol -> Symbol
+    (let* ((module* (symbol->string module))
+           (sym* (symbol->string sym))
+           (namespaced (string-append module* "/" sym*))
+           (namespaced* (string->symbol namespaced)))
+      namespaced*))
+
   ;; parsing module definitions
 
   (define (parse-module-definition tree)
@@ -164,7 +172,7 @@
           annotated
           (let ((name (car internal-symbols)))
             (loop (cdr internal-symbols)
-                  (cons (cons name (gensym module name)) annotated))))))  
+                  (cons (cons name (namespace module name)) annotated))))))
 
   ;; main loop
 
