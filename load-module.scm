@@ -74,6 +74,23 @@
             ((list? val) (car val))
             (else #f))))
 
+  ;; parsing project files
+
+  (define (parse-project-definition tree)
+    ;; List -> List
+    (let ((project-name (cadr tree))
+          (modules (cdaddr tree)))
+      (list (cons 'name (list project-name))
+            (cons 'modules modules))))
+
+  (define (get-project-name project)
+    ;; List -> List
+    (assoc* 'name project))
+
+  (define (get-project-modules project)
+    ;; List -> List
+    (assoc* 'modules project))
+
   ;; converting between module names and filenames
 
   (define (module->source-file mod)
