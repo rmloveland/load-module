@@ -59,3 +59,12 @@ You may say, "but what about the diamond dependency problem?  What about version
 
 There is one procedure exported, `load-project`.
 
+## Why is `#f` getting passed into `GENSYM`?
+
+Because a call to `ASSOC*` is failing.
+
+Which one?
+
+TBD
+
+(Note that this bug is "fixed" in `a5d355a`.)
