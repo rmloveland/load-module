@@ -149,6 +149,8 @@
     (cond ((null? tree) '())
           ((symbol? tree)
            (leaf-func tree))
+          ((char? tree)
+           (leaf-func tree))
           ((string? tree)
            (leaf-func tree))
           ((boolean? (car tree))
