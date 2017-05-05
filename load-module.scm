@@ -173,8 +173,10 @@
       (if (null? internal-symbols)
           annotated
           (let ((name (car internal-symbols)))
-            (loop (cdr internal-symbols)
-                  (cons (cons name (namespace module name)) annotated))))))
+            (if (equal? name #f)
+                (loop (cdr internal-symbols) annotated)
+                (loop (cdr internal-symbols)
+                      (cons (cons name (gensym module name)) annotated)))))))
 
   ;; main loop
 
