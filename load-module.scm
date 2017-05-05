@@ -4,7 +4,7 @@
 
 (define (load-module module)
 
-  ;; utils
+  ;; Utilities
 
   (define (take xs i)
     ;; List Integer -> List
@@ -18,7 +18,7 @@
     (let ((val (assoc a as)))
       (if val (cdr val) #f)))
 
-  ;; gensyms
+  ;; Gensyms
 
   (define *random-seed* 2718281828)
   (define *random-constant* 31415821)
@@ -28,7 +28,7 @@
     (let ((answer #f))
       (begin
         (set! *random-seed*
-              (modulo (+ (* *random-seed* *random-constant*) 1) n))
+          (modulo (+ (* *random-seed* *random-constant*) 1) n))
         (set! answer *random-seed*)
         answer)))
 
@@ -51,7 +51,7 @@
            (namespaced* (string->symbol namespaced)))
       namespaced*))
 
-  ;; parsing module definitions
+  ;; Parsing module definitions
 
   (define (parse-module-definition tree)
     ;; List -> List
@@ -82,7 +82,11 @@
             ((list? val) (car val))
             (else #f))))
 
-  ;; parsing project files
+  ;; Parsing project files
+
+  ;; ++ This will probably go away and live in its own project at some
+  ;; point.  This code isn't used by anything else in the file.  See
+  ;; the relevant section of the notes file in this directory.
 
   (define (parse-project-definition tree)
     ;; List -> List
@@ -125,7 +129,7 @@
            (mod (string->symbol (list->string xs))))
       mod))
 
-  ;; code walking
+  ;; Code walking
 
   (define (gather-defined-symbols module)
     ;; Symbol -> Alist
@@ -164,7 +168,7 @@
                       (map* leaf-func (cdr tree))))))
 
   (define (tree-rewrite tree rewrite-proc)
-    ;; List x Proc -> List
+    ;; List Procedure -> List
     (map* (lambda (atom) (rewrite-proc atom)) tree))
 
   (define (annotate-internal-symbols module internal-symbols)
@@ -178,7 +182,7 @@
                 (loop (cdr internal-symbols)
                       (cons (cons name (gensym module name)) annotated)))))))
 
-  ;; main loop
+  ;; Main loop
 
   (let* ((module-file (module->module-file module))
          (source-file (module->source-file module))
