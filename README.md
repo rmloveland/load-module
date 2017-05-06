@@ -57,7 +57,7 @@ With *load-module*, you don't need to modify the Scheme code to make it a module
         (define-module utils
           (exports random-integer atom? take))
 
-(Note: I found some other uses of `define-module` in the Scheme wilds (I think Gauche?).  I don't use those implementations, but if you do it's trivial to replace the use of `define-module` in the module definition with something else you prefer -- one of the benefits of keeping it simple.)
+(Note: I found some other uses of `define-module` in the Scheme wilds (I think Gauche?).  I don't use those implementations, but if you do it's trivial to replace the use of `define-module` in the module definition with something else you prefer -- one of the benefits of keeping it simple.  Also, I know that `*.mod` is used for Modula code, so this may change as well.)
 
 Now, assuming you've already loaded `load-module.scm`, you have access to a new procedure, `load-module`.
 
