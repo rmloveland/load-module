@@ -157,6 +157,8 @@
            (leaf-func tree))
           ((string? tree)
            (leaf-func tree))
+          ((number? tree)
+           (leaf-func tree))
           ((boolean? (car tree))
            (cons (car tree)
                  (map* leaf-func (cdr tree))))
