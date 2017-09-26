@@ -2,13 +2,9 @@
 
 ## on eval
 
-larceny, chez, gambit:
+larceny, chez, gambit, chicken, chibi:
 
 `(eval '(+ 1 2))`
-
-gambit:
-
-`(eval '(+ 1 2) '())`
 
 scheme48:
 
