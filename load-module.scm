@@ -56,9 +56,17 @@
   (define (parse-module-definition tree)
     ;; List -> List
     (let ((modname (cadr tree))
-          (exports (cdaddr tree)))
+          (exports (cdaddr tree))
+          (requires (maybe-parse-requires tree)))
       (list (cons 'name (list modname))
-            (cons 'exports exports))))
+            (cons 'exports exports)
+            (cons 'requires requires))))
+
+  (define (maybe-parse-requires tree)
+    (if (= (length tree) 3)
+        '()
+        (let ((requires (car (cadddr tree))))
+          requires)))
 
   (define (parse-module-file file)
     ;; Pathname -> List
@@ -74,6 +82,10 @@
   (define (get-module-exports module)
     ;; List -> List
     (assoc* 'exports module))
+
+  (define (get-module-requires module)
+    ;; List -> List
+    (assoc* 'requires module))
 
   (define (get-definition-name code)
     ;; List -> Symbol
@@ -136,7 +148,8 @@
     (let* ((module-file (module->module-file module))
            (source-file (module->source-file module))
            (module-definition (parse-module-file module-file))
-           (exports (get-module-exports module-definition)))
+           (exports (get-module-exports module-definition))
+           (requires (get-module-requires module-definition)))
       (with-input-from-file source-file
         (lambda ()
           (let loop ((code (read)) (exports exports) (internal-symbols '()))
@@ -189,21 +202,34 @@
   (let* ((module-file (module->module-file module))
          (source-file (module->source-file module))
          (module-definition (parse-module-file module-file))
+         (requires (get-module-requires module-definition))
          (symbols (gather-defined-symbols module))
          (internal-symbols (assoc* 'internal-symbols symbols))
          (annotated-internal-symbols (annotate-internal-symbols module internal-symbols)))
-    (with-input-from-file source-file
-      (lambda ()
-        (let loop ((code (read)))
-          (if (eof-object? code)
-              #t
-              (let ((code* (tree-rewrite code
-                                         (lambda (atom)
-                                           (if (member atom internal-symbols)
-                                               (assoc* atom annotated-internal-symbols)
-                                               atom)))))
-                (begin
-                  (eval code*)
-                  (loop (read))))))))))
+
+    (begin
+
+      ;; First, load the prerequisite modules, if any
+      (if (and (list? requires)
+               (not (null? requires)))
+          (begin (display "REQUIRES: ")
+                 (display requires)
+                 (newline)
+                 (for-each (lambda (req) (display `(load-module (quote ,req)))) requires)))
+
+      ;; Next, load the actual code
+      (with-input-from-file source-file
+        (lambda ()
+          (let loop ((code (read)))
+            (if (eof-object? code)
+                #t
+                (let ((code* (tree-rewrite code
+                                           (lambda (atom)
+                                             (if (member atom internal-symbols)
+                                                 (assoc* atom annotated-internal-symbols)
+                                                 atom)))))
+                  (begin
+                    (eval code*)
+                    (loop (read)))))))))))
 
 ;; eof
