@@ -2,7 +2,12 @@
 
 ;; A portable Scheme module system.
 
-(define (load-module module)
+(define-syntax load-module
+  (syntax-rules ()
+    ((load-module module ...)
+     (load-module* (quote module ...)))))
+
+(define (load-module* module)
 
   ;; Utilities
 
@@ -65,7 +70,7 @@
   (define (maybe-parse-requires tree)
     (if (= (length tree) 3)
         '()
-        (let ((requires (car (cadddr tree))))
+        (let ((requires (cdr (cadddr tree))))
           requires)))
 
   (define (parse-module-file file)
@@ -215,7 +220,8 @@
           (begin (display "REQUIRES: ")
                  (display requires)
                  (newline)
-                 (for-each (lambda (req) (display `(load-module (quote ,req)))) requires)))
+                 (for-each
+                  (lambda (req) (eval `(load-module ,req))) requires)))
 
       ;; Next, load the actual code
       (with-input-from-file source-file
