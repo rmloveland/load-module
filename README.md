@@ -59,12 +59,12 @@ With *load-module*, you don't need to modify the Scheme code to make it a module
 
 (Note: I found some other uses of `define-module` in the Scheme wilds (I think Gauche?).  I don't use those implementations, but if you do it's trivial to replace the use of `define-module` in the module definition with something else you prefer -- one of the benefits of keeping it simple.  Also, I know that `*.mod` is used for Modula code, so this may change as well.)
 
-Now, assuming you've already loaded `load-module.scm`, you have access to a new procedure, `load-module`.
+Now, assuming you've already loaded `load-module.scm`, you have access to a new syntactic form, `load-module`.
 
-`load-module` reads in this module file and loads the three procedures you want from `utils.scm` into your environment.  Run it like so:
+`load-module` reads in the module definition file and loads the three procedures you want from `utils.scm` into your environment.  Run it like so:
 
         > (load "load-module.scm")
-        > (load-module 'utils)
+        > (load-module utils)
         #t
         > (random-integer 199)
         76
@@ -106,9 +106,9 @@ Now, assuming you've already loaded `load-module.scm`, you have access to a new 
 
         (begin 
           (load "load-module.scm")
-          (load-module 'utils)
-          (load-module 'format)
-          (load-module 'mergesort))
+          (load-module utils)
+          (load-module format)
+          (load-module mergesort))
 
 Then you can load up your whole project in the environment by calling
 
@@ -117,7 +117,9 @@ Then you can load up your whole project in the environment by calling
 - It doesn't know how to "Require module X from inside module Y".
   This may be added.  For now, you just have to load your modules in
   the right order.  I'm not sure if this is a feature or a bug.
-  Simplicity can be a nice thing.
+  Simplicity can be a nice thing. (*Note*: This feature has been added
+  and should be working as of commit 0247c38; the documentation will
+  be updated "soon" (tm).)
 
 - It doesn't do anything with "load paths" or what-have-you.  It
   assumes that you have everything you need for your project either
