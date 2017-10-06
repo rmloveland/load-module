@@ -1,6 +1,4 @@
-;;; load-module.scm
-
-;; A portable Scheme module system.
+;;; LOAD-MODULE: A portable Scheme module system.
 
 (define-syntax load-module
   (syntax-rules ()
@@ -68,6 +66,7 @@
             (cons 'requires requires))))
 
   (define (maybe-parse-requires tree)
+    ;; List -> List
     (if (= (length tree) 3)
         '()
         (let ((requires (cdr (cadddr tree))))
@@ -120,7 +119,7 @@
     ;; List -> List
     (assoc* 'modules project))
 
-  ;; converting between module names and filenames
+  ;; Converting between module names and filenames
 
   (define (module->source-file mod)
     ;; Symbol -> Pathname
