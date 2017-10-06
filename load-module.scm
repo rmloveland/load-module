@@ -217,11 +217,14 @@
       ;; First, load the prerequisite modules, if any
       (if (and (list? requires)
                (not (null? requires)))
-          (begin (display "REQUIRES: ")
-                 (display requires)
-                 (newline)
-                 (for-each
-                  (lambda (req) (eval `(load-module ,req))) requires)))
+          (let* ((module-name (symbol->string module))
+                 (module-key (string-append "'(" module-name " . ")))
+            (display module-key)
+            (display requires)
+            (display ")")
+            (newline)
+            (for-each
+             (lambda (req) (eval `(load-module ,req))) requires)))
 
       ;; Next, load the actual code
       (with-input-from-file source-file
