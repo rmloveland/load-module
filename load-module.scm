@@ -33,7 +33,7 @@
     (let ((answer #f))
       (begin
         (set! *random-seed*
-          (modulo (+ (* *random-seed* *random-constant*) 1) n))
+              (modulo (+ (* *random-seed* *random-constant*) 1) n))
         (set! answer *random-seed*)
         answer)))
 
