@@ -1,11 +1,16 @@
 ;;; LOAD-MODULE: A portable Scheme module system.
 
-(define-syntax load-module
-  (syntax-rules ()
-    ((load-module module ...)
-     (load-module* (quote module ...)))))
 
-(define (load-module* module)
+;; +++ It could be nice to wrap this in syntax somehow (one
+;; possibility shown below).  However, I wasn't very happy with my
+;; first attempt, so I'm reverting back to using a procedure for now!
+;;
+;; (define-syntax load-module
+;;   (syntax-rules ()
+;;     ((load-module module ...)
+;;      (load-module* (quote module ...)))))
+
+(define (load-module module)
 
   ;; Utilities
 
@@ -223,7 +228,7 @@
             (display ")")
             (newline)
             (for-each
-             (lambda (req) (eval `(load-module ,req))) requires)))
+             (lambda (req) (eval `(load-module (quote ,req)))) requires)))
 
       ;; Next, load the actual code
       (with-input-from-file source-file
