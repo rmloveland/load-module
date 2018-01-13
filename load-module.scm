@@ -1,6 +1,5 @@
 ;;; LOAD-MODULE: A portable Scheme module system.
 
-
 ;; +++ It could be nice to wrap this in syntax somehow (one
 ;; possibility shown below).  However, I wasn't very happy with my
 ;; first attempt, so I'm reverting back to using a procedure for now!
@@ -79,9 +78,9 @@
 
   (define (parse-module-file file)
     ;; Pathname -> List
-    (with-input-from-file file
-      (lambda ()
-        (let ((code (read)))
+    (call-with-input-file file
+      (lambda (input-port)
+        (let ((code (read input-port)))
           (parse-module-definition code)))))
 
   (define (get-module-name module)
@@ -159,16 +158,16 @@
            (module-definition (parse-module-file module-file))
            (exports (get-module-exports module-definition))
            (requires (get-module-requires module-definition)))
-      (with-input-from-file source-file
-        (lambda ()
-          (let loop ((code (read)) (exports exports) (internal-symbols '()))
+      (call-with-input-file source-file
+        (lambda (input-port)
+          (let loop ((code (read input-port)) (exports exports) (internal-symbols '()))
             (if (eof-object? code)
                 (list (cons 'internal-symbols internal-symbols)
                       (cons 'exports exports))
                 (let ((name (get-definition-name code)))
                   (if (member name exports)
-                      (loop (read) exports internal-symbols)
-                      (loop (read) exports (cons name internal-symbols))))))))))
+                      (loop (read input-port) exports internal-symbols)
+                      (loop (read input-port) exports (cons name internal-symbols))))))))))
 
   (define (map* leaf-func tree)
     ;; Procedure List -> List
@@ -228,12 +227,12 @@
             (display ")")
             (newline)
             (for-each
-             (lambda (req) (eval `(load-module (quote ,req)))) requires)))
+             (lambda (req) (eval `(load-module (quote ,req)) (interaction-environment))) requires)))
 
       ;; Next, load the actual code
-      (with-input-from-file source-file
-        (lambda ()
-          (let loop ((code (read)))
+      (call-with-input-file source-file
+        (lambda (input-port)
+          (let loop ((code (read input-port)))
             (if (eof-object? code)
                 #t
                 (let ((code* (tree-rewrite code
@@ -242,7 +241,7 @@
                                                  (assoc* atom annotated-internal-symbols)
                                                  atom)))))
                   (begin
-                    (eval code*)
-                    (loop (read)))))))))))
+                    (eval code* (interaction-environment))
+                    (loop (read input-port)))))))))))
 
 ;; eof
