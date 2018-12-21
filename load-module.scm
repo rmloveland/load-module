@@ -11,6 +11,17 @@
 
 (define (load-module module)
 
+  ;; Debugging output
+
+  (define *load-module-debug* #f)
+
+  (define (debug-print msg obj)
+    (if *load-module-debug*
+        (begin (display msg)
+               (newline)
+               (display obj)
+               (newline))))
+
   ;; Utilities
 
   (define (take xs i)
@@ -165,6 +176,7 @@
       (call-with-input-file source-file
         (lambda (input-port)
           (let loop ((code (read input-port)) (exports exports) (internal-symbols '()))
+            (debug-print 'INTERNAL-SYMBOLS internal-symbols)
             (if (eof-object? code)
                 (list (cons 'internal-symbols internal-symbols)
                       (cons 'exports exports))
