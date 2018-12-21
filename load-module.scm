@@ -97,10 +97,14 @@
 
   (define (get-definition-name code)
     ;; List -> Symbol
-    (let ((val (cadr code)))
-      (cond ((symbol? val) val)
-            ((list? val) (car val))
-            (else #f))))
+    (let ((operator (car code))
+          (allowed-operators '(define define-syntax))
+          (val (cadr code)))
+      (cond
+       ((not (member operator allowed-operators)) #f)
+       ((symbol? val) val)
+       ((list? val) (car val))
+       (else #f))))
 
   ;; Parsing project files
 
