@@ -54,10 +54,10 @@
     ;; Symbol Symbol -> Symbol
     (let* ((i (random-integer 10000000000))
            (num (number->string i))
-           (root "%--gensym")
+           (root "%__")
            (module* (symbol->string module))
            (sym* (symbol->string sym))
-           (gensym (string-append root "-" module* "-" sym* "-" num))
+           (gensym (string-append root module* "." sym* "." num))
            (gensym* (string->symbol gensym)))
       gensym*))
 
