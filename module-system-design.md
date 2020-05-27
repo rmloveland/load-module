@@ -23,6 +23,8 @@ The module system code (which all fits in one file) will read the module definit
 
 + If the top-level definition is not one of the exported variables or procedures from `utils.mod`, it will rewrite the name as a "gensym" (generated symbol), including in all of the calling code from that file.
 
+Thus, each load of the module generates a fresh set of the internal "helper" etc. procedures that are used, in addition to reloading the exported procedures.  This hinges on the module system's implementation of `GENSYM` working well enough to generate fresh names, which in practice, it does.
+
 Consider the following contents of `utils.scm`:
 
 ```
@@ -52,3 +54,7 @@ Consider the following contents of `utils.scm`:
 ```
 
 In this file, only the procedures `ATOM?`, `RANDOM-INTEGER`, and `RANDOM-CHAR` are meant for export.  The variables related to random number generation are for internal use only.  Therefore, we need to rewrite those variables using the gensyms facility.
+
+## Limitations
+
+A limitation of this module system is that it uses the host Scheme's `READ`.  This means that e.g. if Larceny's reader does not like Gambit's convention of using `(##foo)` to denote internal-to-Gambit procedures, Larceny will barf.  Or another example: if Scheme48 tries to read in some JScheme code that uses the Javadot syntax, Scheme48 will signal an error, since it wants everything starting with a `.` to be a number.
