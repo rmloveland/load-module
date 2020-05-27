@@ -1,13 +1,107 @@
-;;; LOAD-MODULE: A portable Scheme module system.
+;; -*- Mode: Scheme -*-
 
-;; +++ It could be nice to wrap this in syntax somehow (one
-;; possibility shown below).  However, I wasn't very happy with my
-;; first attempt, so I'm reverting back to using a procedure for now!
+;; The code in this file defines a portable Scheme module system.  It
+;; has no external library dependencies, and does not itself use the
+;; module system it defines, thus avoiding any bootstrapping issues.
 ;;
-;; (define-syntax load-module
-;;   (syntax-rules ()
-;;     ((load-module module ...)
-;;      (load-module* (quote module ...)))))
+;; In addition to portability, the other main feature is that the
+;; module definition is intended to live in a separate file
+;; "alongside" the Scheme code that it operates on.  This has several
+;; benefits:
+;;
+;; - The module definition is not Scheme code, but a mere
+;; "configuration file" using s-expressions.  It is "mere data", and
+;; thus we don't have to teach the host Scheme how to execute and
+;; interpret it.
+;;
+;; - You can turn any arbitrary file of Scheme code into a library
+;; easily, by "dropping in" the module definition file alongside said
+;; file.  Users of Scheme48's module system will be familiar with this
+;; operation.
+;;
+;; - You avoid the quite ugly situation where the library file starts
+;; with `BEGIN` or `DEFINE-LIBRARY` and everything that follows has to
+;; be indented in an unnatural way.
+;;
+;; A limitation of this module system is that it uses the host
+;; Scheme's `READ`.  This means that e.g. if Larceny's reader does not
+;; like Gambit's convention of using `(##foo)` to denote
+;; internal-to-Gambit procedures, Larceny will barf.  Or another
+;; example: if Scheme48 tries to read in some JScheme code that uses
+;; the Javadot syntax, Scheme48 will signal an error, since it wants
+;; everything starting with a `.` to be a number.
+;;
+;; To make a module:
+;;
+;; Given a file `utils.scm` that has some code that you'd like to
+;; become the basis of a module, add a file called `utils.mod`
+;; alongside it in the same directory.
+;;
+;; The structure of `utils.mod` is as follows:
+;;
+;; ```
+;; (define-module utils
+;;   (exports random-integer random-char atom?))
+;; ```
+;;
+;; The module system code will read the module definition from
+;; `utils.mod` and load the corresponding Scheme code file
+;; `utils.scm`, with the following behavior:
+;;
+;; + It will read all top-level definitions of procedures and
+;; variables in the file, e.g. `(define (foo) 'FOO)` or `(define bar
+;; 19)`.  It also works on `DEFINE-SYNTAX` forms.
+;;
+;; + If the top-level definition is not one of the exported variables
+;; or procedures from `utils.mod`, it will rewrite the name as a
+;; "gensym" (generated symbol), including in all of the calling code
+;; from that file.  It does this based on the module name as well,
+;; providing a poor man's "namespacing", of a sort.  For example, a
+;; {\tt random-integer} procedure from a {\tt utils} module will be
+;; gensymmed as {\tt %__utils.random-integer.5643082770}.
+;;
+;; Thus, each load of the module generates a fresh set of the internal
+;; "helper" procedures that are used, in addition to reloading the
+;; exported procedures.  This hinges on the module system's
+;; implementation of `GENSYM` working well enough to generate fresh
+;; names, which in practice, it does.
+;;
+;; Consider the following contents of `utils.scm`:
+;;
+;; ```
+;; ;; Generate random numbers using Sedgewick, 2nd ed., p. 513
+;;
+;; (define *random-seed* 2718281828)
+;; (define *random-constant* 31415821)
+;;
+;; (define (random-integer n)
+;;   (let ((answer #f))
+;;     (begin
+;;       (set! *random-seed*
+;;         (modulo (+ (* *random-seed* *random-constant*) 1) n))
+;;       (set! answer *random-seed*)
+;;       answer)))
+;;
+;; (define (random-char . seed)
+;;   ;; A-Z :: 65-90
+;;   ;; a-z :: 97-122
+;;   (let ((i (mod (random-integer 10000000) 122)))
+;;     (integer->char i)))
+;;
+;; (define (atom? x)
+;;   (not (or (vector? x) (pair? x) (null? x))))
+;; ```
+;;
+;; As described by our module definition file {\tt utils.mod}, only
+;; the procedures `ATOM?`, `RANDOM-INTEGER`, and `RANDOM-CHAR` are
+;; meant for export.  The variables related to random number
+;; generation are for internal use only.  Therefore, those variables'
+;; names will be rewritten using the gensyms facility.
+
+;; --------------------------------------------------------------------
+;; LOAD-MODULE (symbol): Load the module named 'foo.  This requires
+;; that you have files named "foo.mod" and "foo.scm" in the working
+;; directory.
 
 (define (load-module module)
 
